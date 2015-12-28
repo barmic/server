@@ -1,0 +1,22 @@
+---
+- hosts: barmic
+  become_method: su
+  vars:
+    domain: barmic.eu
+    subdomain: cotize-test
+  tasks:
+  - name: Upload configuration files
+    copy: src={{ item }} dest=/etc/nginx owner=www-data
+    become: true
+    with_items:
+      - tls.conf
+      - drop.conf
+  - name: Install subdomain configuration
+    template: src=nginx-subdomain.conf dest=/etc/nginx/sites-available/{{ subdomain }} owner=www-data group=www-data
+    become: true
+  - name: Active configuration
+    file: src=/etc/nginx/sites-available/{{ subdomain }} dest=/etc/nginx/sites-enabled/{{ subdomain }} state=link
+    become: true
+  - name: Restart Nginx
+    service: name=nginx state=restarted
+    become: true
